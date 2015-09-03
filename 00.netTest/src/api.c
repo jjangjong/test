@@ -1,10 +1,12 @@
+#include <signal.h>
+#include <sys/mman.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
-#include <unistd.h>
 #include <time.h>
-#include <sys/mman.h>
+#include <unistd.h>
+
 #include "netTest.h"
 
 struct stream *makeSteam(struct netTest *test){
@@ -15,7 +17,7 @@ struct stream *makeSteam(struct netTest *test){
 
 	sp = (struct stream *)malloc(sizeof(struct stream));
 	if(!sp) {
-		printf("Can't make stream\n");
+		debug("Can't make stream\n");
 		return NULL;
 	}
 	memset(sp, 0, sizeof(struct stream));
@@ -45,8 +47,24 @@ struct stream *makeSteam(struct netTest *test){
 	for (i = 0; i < test->blksize; ++i){
 		//sp->buffer[i] = random();
 		sp->buffer[i] = (random()%(A-z))+A; //ASCII range
-		printf("sp->buffer[%d] = %d\n",i, sp->buffer[i]);
+		debug("sp->buffer[%d] = %d\n",i, sp->buffer[i]);
 	}
 
 	return sp;
+}
+
+void freeStream(struct stream *sp){
+	munmap(sp->buffer, sp->test->blksize);
+	close(sp->buffer_fd);
+}
+
+void catchSigend(void (*handler)(int)) {
+	signal(SIGINT, handler);
+	signal(SIGTERM, handler);
+	signal(SIGHUP, handler);
+}
+
+void getSigend(struct netTest *test){
+	debug("Get ctrl+c\n");
+	exit(1);
 }

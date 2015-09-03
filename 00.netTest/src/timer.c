@@ -126,7 +126,7 @@ Timer*tmr_create(struct timeval* nowP, TimerProc* timer_proc,
 	return t;
 }
 
-struct timeval*tmr_timeout(struct timeval* nowP) {
+struct timeval *tmr_timeout(struct timeval* nowP) {
 	struct timeval now;
 	int64_t usecs;
 	static struct timeval timeout;

@@ -9,7 +9,7 @@
 
 #define BUF_SIZE 1024
 void error_handling(char *message);
-
+#if 0
 int copy_client(struct netTest *test)
 {
 	int sock;
@@ -48,3 +48,4 @@ int copy_client(struct netTest *test)
 	close(sock);
 	return 0;
 }
+#endif
