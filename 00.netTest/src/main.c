@@ -10,8 +10,11 @@ int main(int argc, char **argv) {
 	struct netTest *test;
 	struct stream *sp;
 
+
 	printf("merge 1\n");
-	if (!(test = initTest()))
+	printf("master\n");
+	if(!(test = initTest()))
+
 		debug("Init error\n");
 
 	if (parseArguments(test, argc, argv) < 0) {
