@@ -10,9 +10,9 @@ int main(int argc, char **argv) {
 	struct netTest *test;
 	struct stream *sp;
 
-
 	printf("merge 1\n");
 	printf("master\n");
+	printf("merge3\n");
 	if(!(test = initTest()))
 
 		debug("Init error\n");
