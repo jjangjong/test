@@ -12,6 +12,7 @@ int main(int argc, char **argv) {
 	struct netTest *test;
 	struct stream *sp;
 
+	printf("master\n");
 	if(!(test = initTest()))
 		debug("Init error\n");
 
