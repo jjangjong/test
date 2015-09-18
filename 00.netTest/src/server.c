@@ -15,17 +15,23 @@
 #include "netTest.h"
 #include "timer.h"
 
-
 #define BUF_SIZE 1024
-void error_handling(char *buf);
-int server(struct netTest *test, struct stream *sp);
 
 static jmp_buf sigend_jmp_buf;
 static void sigend_handler(int sig) {
 	longjmp(sigend_jmp_buf, 1);
 }
+static void cleanupServer(struct netTest *test){
+	/* Close open test sockets */
+	close(test->ctrlSocket);
+	close(test->listener);
+}
 
 int serverRun(struct netTest *test){
+	fd_set readSet, writeSet;
+	struct timeval *timeout;
+	struct timeval now;
+	int result;
 
 	/* Termination signals. */
 	catchSigend(sigend_handler);
@@ -36,7 +42,78 @@ int serverRun(struct netTest *test){
 		debug("Can't get socket\n");
 		return -1;
 	}
-	server(test, test->sp);
+
+	FD_ZERO(&test->readSet);
+	FD_ZERO(&test->writeSet);
+	FD_SET(test->listener, &test->readSet);
+	if(test->listener > test->maxFd)
+		test->maxFd = test->listener;
+
+	test->status = NET_PREPARE;
+
+	while (test->status != NET_END){
+		memcpy(&readSet, &test->readSet, sizeof(fd_set));
+		memcpy(&writeSet, &test->writeSet, sizeof(fd_set));
+
+		(void) gettimeofday(&now, NULL);
+		timeout = tmr_timeout(&now);
+		result = select(test->maxFd + 1, &readSet, &writeSet, NULL, timeout);
+
+		if(result == 0){
+			debug("select timeout\n");
+			continue;
+		}else if(result <0){
+			debug("select error\n");
+			cleanupServer(test);
+			return -1;
+		}
+
+		if(FD_ISSET(test->listener, &readSet)){
+			if(netAccept(test) <0){
+				cleanupServer(test);
+				return -1;
+			}
+			FD_CLR(test->listener, &readSet);
+		}
+		if(FD_ISSET(test->ctrlSocket, &readSet)){
+			int res = read(test->ctrlSocket, (char*) &test->status, sizeof(signed char));
+			printf("test->status = %d\n",test->status);
+			if(res<=0){
+				if(res == 0) {
+					debug("the client has unexpectedly closed the connection\n");
+					test->status = NET_END;
+					break;
+				}else {
+					debug("ctrlSocket has problems\n");
+					cleanupServer(test);
+					return -1;
+				}
+			}
+		}
+		switch(test->status){
+		case NET_START:
+
+
+
+		break;
+		case NET_END:
+
+		break;
+		default:
+		break;
+		}
+		write(test->ctrlSocket, "write function",14);
+	}
+
+	printf("return\n");
+
+
+
+
+
+
+
+//	server(test, test->sp);
 
 	return 0;
 }
@@ -44,10 +121,11 @@ int serverRun(struct netTest *test){
 int server(struct netTest *test, struct stream *sp)
 {
 	int serv_sock, clnt_sock;
-	struct sockaddr_in serv_adr, clnt_adr;
+	struct sockaddr_in clnt_adr;
 	struct timeval *timeout;
 	struct timeval now;
 	fd_set reads, cpy_reads;
+
 
 	socklen_t adr_sz;
 	int fd_max, str_len, fd_num, i;
@@ -57,6 +135,7 @@ int server(struct netTest *test, struct stream *sp)
 
 #if 0
 
+	struct sockaddr_in serv_adr;
 	serv_sock=socket(PF_INET, SOCK_STREAM, 0);
 	memset(&serv_adr, 0, sizeof(serv_adr));
 	serv_adr.sin_family=AF_INET;
@@ -87,10 +166,15 @@ int server(struct netTest *test, struct stream *sp)
 		if((fd_num=select(fd_max+1, &cpy_reads, 0, 0, timeout))==-1)
 			break;
 
-		if(fd_num==0){
-			debug("timeout\n");
+		if(fd_num<0){
+			debug("Server select error\n");
+			return -1;
+		} else if (fd_num==0){
+			debug("Select time out\n");
 			continue;
 		}
+
+
 
 		for(i=0; i<fd_max+1; i++)
 		{
@@ -158,4 +242,3 @@ int server(struct netTest *test, struct stream *sp)
 	close(sp->buffer_fd);
 	return 0;
 }
-

@@ -5,9 +5,13 @@
 #define DEFAULT_TCP_BLKSIZE (128 * 1024)  /* default read/write block size */
 
 enum {
-	NET_START = 0,
+	NET_PREPARE = 0,
+	NET_START,
+	NET_TESTING,
 	NET_END,
-	NET_DOING,
+	NET_SERVER_TERMINATE,
+	NET_CLIENT_TERMINATE,
+	ACCESS_DENIED =(-1),
 };
 
 
@@ -16,23 +20,24 @@ struct netTest {
 	char *bindAddress;
 	char *serverHostname;// server hostname or IP
 	int serverPort;		// server port
-	char status;			// program status
-
+	signed char status;			// program status
 	int domain;			// AF_INET or AF_INET6
 
-	int ctrlSocket;
 	int listener;
-
-
+	int ctrlSocket;
 
 	int blksize;
 	int proto;				// SOCK_STREAM: TCP, SOCK_DGRAM: UDP
 
-
+	/*Select related parameters */
 	int maxFd;
+	fd_set readSet;		// set of read sockets
+	fd_set writeSet;		// set of write sockets
+
 	char debug;
 
 	struct stream *sp;
+
 };
 
 struct stream {

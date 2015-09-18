@@ -6,41 +6,35 @@
 #include "net.h"
 #include "usage.h"
 
-
-
 int main(int argc, char **argv) {
 	struct netTest *test;
 	struct stream *sp;
 
-	if(!(test = initTest()))
+	printf("merge 1\n");
+	if (!(test = initTest()))
 		debug("Init error\n");
 
-	if(parseArguments(test, argc, argv)<0){
+	if (parseArguments(test, argc, argv) < 0) {
 		debug("Error arguments\n");
 		usage();
 		exit(1);
 	}
 
-	if(test->role == 's'){
-		if(serverRun(test) < 0){
+	if (test->role == 's') {
+		if (serverRun(test) < 0) {
 			debug("Can't run Server");
 			exit(1);
 		}
-	}else{
+	} else {
 		if (!(sp = makeSteam(test))) {
 			printf("Error makeStream\n");
 			exit(1);
 		}
 		test->sp = sp;
 
-		if(client(test, sp)<0)
+		if (client(test, sp) < 0)
 			exit(1);
 	}
-
-
-
-
-
 
 //
 //
@@ -53,7 +47,6 @@ int main(int argc, char **argv) {
 //	sp->test = test;
 //
 //	freeStream(test->sp);
-
 
 //
 //	if(test->role == 's'){

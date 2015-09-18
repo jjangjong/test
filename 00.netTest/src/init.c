@@ -21,6 +21,7 @@ struct netTest *initTest(){
 	test->debug = 0;
 	test->domain = AF_INET;
 	test->proto = SOCK_STREAM;
+	test->ctrlSocket = -1;
 
 	return test;
 }

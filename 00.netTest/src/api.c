@@ -66,5 +66,10 @@ void catchSigend(void (*handler)(int)) {
 
 void getSigend(struct netTest *test){
 	debug("Get ctrl+c\n");
-	exit(1);
+	test->status = (test->role == 'c') ? NET_CLIENT_TERMINATE : NET_SERVER_TERMINATE;
+	write(test->ctrlSocket, (char*)&test->status,sizeof(signed char));
+	if(test->role == 'c')
+		exit(1);
+
 }
+

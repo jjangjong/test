@@ -7,7 +7,7 @@
 #include <arpa/inet.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-
+#include <setjmp.h>
 #include "debug.h"
 #include "net.h"
 #include "netTest.h"
@@ -25,9 +25,15 @@ int interval=1000;
 char *data;
 #endif
 
-void timer_proc1(TimerClientData client_data, struct timeval *nowP){
-//	write(clientsocket, data, client_data.p);
+static jmp_buf sigend_jmp_buf;
+static void sigend_handler(int sig) {
+	longjmp(sigend_jmp_buf, 1);
+}
 
+
+
+
+void timer_proc1(TimerClientData client_data, struct timeval *nowP){
 	fputs("Input message(Q to quit): ", stdout);
 	fgets(message, BUF_SIZE, stdin);
 
@@ -87,6 +93,13 @@ int client(struct netTest *test, struct stream *sp)
 
 	struct sockaddr_in serv_adr;
 
+	/* Termination signals. */
+	catchSigend(sigend_handler);
+	if (setjmp(sigend_jmp_buf))
+		getSigend(test);
+
+
+
 	/////////////////////////////
 	// tmp
 	char msg[10]="test\n";
@@ -121,7 +134,13 @@ int client(struct netTest *test, struct stream *sp)
 		return -1;
 	}
 #endif
-
+while(1){
+	printf("timer_proc1 start\n");
+	unsigned char tmp = NET_START;
+	write(clientsocket, (char*)&tmp, sizeof(tmp));
+	sleep(10);
+}
+#ifdef timer
 	(void) gettimeofday(&now, NULL);
 
 	test1 = tmr_create(&now,timer_proc1,cd, interval*SEC_TO_MS,1);
@@ -134,6 +153,8 @@ int client(struct netTest *test, struct stream *sp)
 		(void) gettimeofday(&now, NULL);
 		tmr_run(&now);
 	}
+#endif
+
 #endif
 
 	munmap(sp->buffer, test->blksize);
