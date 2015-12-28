@@ -15,7 +15,6 @@ int main(int argc, char **argv) {
 	printf("merge3\n");
 	printf("merge2\n");
 	if(!(test = initTest()))
-
 		debug("Init error\n");
 
 	if (parseArguments(test, argc, argv) < 0) {
