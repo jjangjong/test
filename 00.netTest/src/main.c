@@ -13,9 +13,11 @@ int main(int argc, char **argv) {
 	printf("test branch\n");
 	printf("merge remind\n");
 	printf("merge 1\n");
+	printf("test branch\n");
 	printf("master\n");
 	printf("merge3\n");
 	printf("merge2\n");
+	printf("add main.c\n");
 	if(!(test = initTest()))
 		debug("Init error\n");
 
