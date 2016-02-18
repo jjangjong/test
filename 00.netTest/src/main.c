@@ -10,6 +10,7 @@ int main(int argc, char **argv) {
 	struct netTest *test;
 	struct stream *sp;
 
+	printf("merge remind\n");
 	printf("merge 1\n");
 	printf("master\n");
 	printf("merge3\n");
